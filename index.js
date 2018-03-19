@@ -22,11 +22,10 @@ var settings = {
 var bot = new Bot(settings);
 
 bot.on('message', function(data) {
-    // all ingoing events https://api.slack.com/rtm
     console.log(data);
 
     if (data.type === "message" && data.subtype !== "bot_message") {
-        translateText(makeHandlerObject(data.user, data.text, data.channel));
+        getChannelFromId(makeHandlerObject(data.user, data.text, data.channel));
     } else if (data.type === "channel_joined" && !data.channel.name_normalized.includes("_translated")) {
         createChannel(data.channel.name_normalized + "_translated");
     }
@@ -48,12 +47,49 @@ function makeHandlerObject(id, text, channel) {
     return obj;
 }
 
-function translateText(handler) {
-    translate(handler.originalText, {
-            to: 'en'
+function getChannelFromId(handler) {
+    fetch('https://slack.com/api/channels.info?channel=' + handler.fromChannel, {
+            method: 'GET',
+            mode: 'cors',
+            redirect: 'follow',
+            headers: new Headers({
+                "Authorization": "Bearer " + appToken,
+                "Content-Type": "application/x-www-form-urlencoded"
+            })
+        })
+        .then(function(response) {
+            // Convert to JSON
+            return response.json();
         })
         .then(res => {
-            lastLanguage = res.from.language.iso;
+            if (res.channel.name.includes("_translated")) {
+                handler.toChannel = res.channel.name.replace("_translated", "");
+            } else {
+                handler.toChannel = res.channel.name + "_translated";
+            }
+
+            translateText(handler);
+        })
+        .catch(err => {
+            console.error(err);
+        });
+}
+
+function translateText(handler) {
+    let toLang = 'en';
+
+    if (!handler.toChannel.includes("_translated")) {
+        toLang = lastLanguage;
+    }
+
+    translate(handler.originalText, {
+            to: toLang
+        })
+        .then(res => {
+            if (handler.toChannel.includes("_translated")) {
+                lastLanguage = res.from.language.iso;
+            }
+
             handler.translatedText = res.text;
             handler.fromISO = res.from.language.iso;
             getInfoFromId(handler);
@@ -78,51 +114,22 @@ function getInfoFromId(handler) {
             return response.json();
         })
         .then(res => {
-            console.log(res);
             handler.realName = res.user.profile.real_name;
-            getChannelFromId(handler);
+            sendMessage(handler);
         })
         .catch(err => {
             console.error(err);
         });
 }
 
-function getChannelFromId(handler) {
-    fetch('https://slack.com/api/channels.info?channel=' + handler.fromChannel, {
-            method: 'GET',
-            mode: 'cors',
-            redirect: 'follow',
-            headers: new Headers({
-                "Authorization": "Bearer " + appToken,
-                "Content-Type": "application/x-www-form-urlencoded"
-            })
-        })
-        .then(function(response) {
-            // Convert to JSON
-            return response.json();
-        })
-        .then(res => {
-            console.log(res);
-            var settings = {
-                "token": token,
-                "name": handler.realName + " (Translated from " + getLanguage(handler.fromISO) + ")"
-            };
-            var bot2 = new Bot(settings);
+function sendMessage(handler) {
+    var settings = {
+        "token": token,
+        "name": handler.realName + " (Translated from " + getLanguage(handler.fromISO) + ")"
+    };
+    var bot2 = new Bot(settings);
 
-            let toChannel;
-            if (res.channel.name.includes("_translated")) {
-                toChannel = res.channel.name.replace("_translated", "");
-            } else {
-                toChannel = res.channel.name + "_translated";
-            }
-
-            console.log(res.channel.name);
-
-            bot2.postMessageToChannel(toChannel, handler.translatedText);
-        })
-        .catch(err => {
-            console.error(err);
-        });
+    bot2.postMessageToChannel(handler.toChannel, handler.translatedText);
 }
 
 function createChannel(name) {
