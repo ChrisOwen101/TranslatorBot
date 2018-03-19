@@ -1,0 +1,17 @@
+{
+  "name": "translate-slack-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Chris Owen",
+  "license": "ISC",
+  "dependencies": {
+    "google-translate-api": "^2.3.0",
+    "node-fetch": "^2.1.1",
+    "slackbots": "^0.3.0",
+    "sqlite3": "^4.0.0"
+  }
+}
