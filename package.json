@@ -12,6 +12,5 @@
     "google-translate-api": "^2.3.0",
     "node-fetch": "^2.1.1",
     "slackbots": "^0.3.0",
-    "sqlite3": "^4.0.0"
   }
 }
