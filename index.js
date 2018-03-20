@@ -20,12 +20,19 @@ var settings = {
     "token": token
 };
 var bot = new Bot(settings);
+var botId;
+
+getBotId();
 
 bot.on('message', function(data) {
     console.log(data);
 
     if (data.type === "message" && data.subtype !== "bot_message") {
-        getChannelFromId(makeHandlerObject(data.user, data.text, data.channel));
+        if (data.text.includes(botId)) {
+
+        } else {
+            getChannelFromId(makeHandlerObject(data.user, data.text, data.channel));
+        }
     } else if (data.type === "channel_joined" && !data.channel.name_normalized.includes("_translated")) {
         createChannel(data.channel.name_normalized + "_translated");
     }
@@ -58,10 +65,11 @@ function getChannelFromId(handler) {
             })
         })
         .then(function(response) {
-            // Convert to JSON
             return response.json();
         })
         .then(res => {
+            console.log(res);
+
             if (res.channel.name.includes("_translated")) {
                 handler.toChannel = res.channel.name.replace("_translated", "");
             } else {
@@ -133,6 +141,8 @@ function sendMessage(handler) {
 }
 
 function createChannel(name) {
+    console.log("CREATE_CHANNEL");
+
     fetch('https://slack.com/api/channels.create', {
             method: 'POST',
             mode: 'cors',
@@ -151,6 +161,61 @@ function createChannel(name) {
         }).then(function(j) {
             // Yay, `j` is a JavaScript object
             console.log(j);
+            joinChannel(j.channel.id);
+        }).catch((error) => {
+            console.log(error);
+        });
+}
+
+function joinChannel(channel) {
+    console.log("CHANNEL ID: " + channel + " BOT ID: " + botId);
+
+    fetch('https://slack.com/api/channels.invite', {
+            method: 'POST',
+            mode: 'cors',
+            redirect: 'follow',
+            body: JSON.stringify({
+                'channel': channel,
+                'user': botId
+            }),
+            headers: new Headers({
+                "Authorization": "Bearer " + appToken,
+                "Content-Type": "application/json"
+            })
+        })
+        .then(function(response) {
+            // Convert to JSON
+            return response.json();
+        }).then(function(j) {
+            console.log("JOIN CHANNEL: " + JSON.stringify(j));
+        }).catch((error) => {
+            console.log(error);
+        });
+}
+
+function getBotId(next) {
+    fetch('https://slack.com/api/users.list' + (next != undefined ? '?cursor=' + next : ""), {
+            method: 'GET',
+            mode: 'cors',
+            redirect: 'follow',
+            headers: new Headers({
+                "Authorization": "Bearer " + appToken
+            })
+        })
+        .then(function(response) {
+            // Convert to JSON
+            return response.json();
+        }).then(function(res) {
+            res.members.forEach(function(member) {
+                if (member.real_name === "TranslatorBot") {
+                    botId = member.id;
+                    console.log("BOT ID FOUND: " + botId);
+                    return;
+                }
+            });
+            if (res.response_metadata != undefined) {
+                getBotId(res.response_metadata.next_cursor);
+            }
         }).catch((error) => {
             console.log(error);
         });
