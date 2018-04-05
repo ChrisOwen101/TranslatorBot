@@ -38,6 +38,7 @@ class TranslatorBot {
                     this.getChannelFromId(this.makeHandlerObject(data.user, data.text, data.channel));
                 }
             } else if (data.type === "channel_joined" && !data.channel.name_normalized.includes("_translated")) {
+                bot.postMessageToChannel(data.channel.name_normalized, `Hi! I'm TranslatorBot... *Beep Boop*.\n\nI'm a robot that tries to translate everything that happens on Slack in to a language everyone can understand. I've just made a channel called *${data.channel.name_normalized + "_translated"}* where I'll attempt to translate everything.\n\nAnything you type in that channel I'll also translate back in to the original language. Give it a go!`);
                 this.createChannel(data.channel.name_normalized + "_translated");
             }
         });
@@ -227,7 +228,11 @@ class TranslatorBot {
     }
 }
 
-isoLangs = {
+function getLanguage(iso) {
+    return isoLangs[iso].name;
+}
+
+var isoLangs = {
     "ab": {
         "name": "Abkhaz",
         "nativeName": "аҧсуа"
@@ -957,9 +962,5 @@ isoLangs = {
         "nativeName": "Saɯ cueŋƅ, Saw cuengh"
     }
 };
-
-function getLanguage(iso) {
-    return isoLangs[iso].name;
-}
 
 module.exports = TranslatorBot;

@@ -15,8 +15,6 @@ var dbUser = process.env.DB_USER.trim();
 var dbPass = process.env.DB_PASS.trim();
 const uri = `mongodb+srv://${dbUser}:${dbPass}@translatorbot-izwur.mongodb.net/test`;
 
-readAllFromMongo();
-
 var app = express();
 var port = process.env.PORT || 8080;
 
@@ -24,6 +22,8 @@ var port = process.env.PORT || 8080;
 //     new TranslatorBot(localOAuth, localBotOAuth);
 //     saveToMongo(localOAuth, localBotOAuth, "123");
 // }
+
+readAllFromMongo();
 
 app.get('/oauth', function (req, res) {
     res.send('You have now added TranslatorBot to your workspace.\nIn Slack, you can invite "TranslatorBot" to any channel to have him start translating messages.');
@@ -49,7 +49,7 @@ function getOauthToken(clientId, clientSecret, code) {
                 "Content-Type": "application/x-www-form-urlencoded"
             })
         })
-        .then(function (response) {
+        .then(response => {
             // Convert to JSON
             return response.json();
         })
@@ -69,13 +69,13 @@ function readAllFromMongo() {
         const collection = client.db("users").collection("keys");
 
         var stream = collection.find().stream();
-        stream.on('data', function (doc) {
+        stream.on('data', doc => {
             new TranslatorBot(doc.accessToken, doc.accessBotToken, doc.botId);
         });
-        stream.on('error', function (err) {
+        stream.on('error', err => {
             console.log(err);
         });
-        stream.on('end', function () {
+        stream.on('end', () => {
             console.log('All done!');
             client.close();
         });
@@ -93,18 +93,14 @@ function saveToMongo(accessToken, accessBotToken, botId) {
         "botId": botId
     };
 
-    MongoClient.connect(uri, function (err, client) {
+    MongoClient.connect(uri, (err, client) => {
         const collection = client.db("users").collection("keys");
 
         collection.save(obj, {
             w: 1
         }, function (err, result) {
-
+            client.close();
         });
-
-
-        // perform actions on the collection object
-        client.close();
     });
 }
 
