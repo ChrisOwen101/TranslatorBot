@@ -14,13 +14,13 @@ app.get('/oauth', function (req, res) {
     res.send('Hello Seattle\n');
     let code = req.param('code');
     let state = req.param('state');
-    getOauthToken(code);
+    getOauthToken(clientId, clientSecret, code);
 
 });
 app.listen(port);
 
 
-function getOauthToken(code) {
+function getOauthToken(clientId, clientSecret, code) {
     fetch('https://slack.com/api/oauth.access?client_id=' + clientId + "&client_secret=" + clientSecret + "&code=" + code, {
             method: 'POST',
             mode: 'cors',
