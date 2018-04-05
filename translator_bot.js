@@ -7,24 +7,27 @@ const translate = require('google-translate-api');
 global.Headers = fetch.Headers;
 
 class TranslatorBot {
-    constructor(appToken, botToken) {
+    constructor(appToken, botToken, botId) {
 
-        this.appToken = appToken
-        this.token = botToken;
+        this.appToken = appToken;
+        this.botToken = botToken;
 
-        console.log("Bot token:" + this.token);
+        if (botId === undefined) {
+            this.getBotId();
+        } else {
+            this.botId = botId;
+        }
+
+        console.log("Bot token:" + this.botToken);
         console.log("App token:" + this.appToken);
 
         this.settings = {
-            "token": this.token
+            "token": this.botToken
         };
-
 
         this.lastLanguage = "en";
 
         var bot = new Bot(this.settings);
-
-        this.getBotId();
 
         bot.on('message', data => {
             console.log(data);
@@ -134,7 +137,7 @@ class TranslatorBot {
 
     sendMessage(handler) {
         let settings = {
-            "token": this.token,
+            "token": this.botToken,
             "name": handler.realName + " (Translated from " + getLanguage(handler.fromISO) + ")"
         };
         let bot2 = new Bot(settings);
