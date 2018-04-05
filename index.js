@@ -21,12 +21,17 @@ app.listen(port);
 
 
 function getOauthToken(clientId, clientSecret, code) {
-    fetch('https://slack.com/api/oauth.access?client_id=' + clientId + "&client_secret=" + clientSecret + "&code=" + code, {
+    let data = {
+        "client_id": clientId,
+        "client_secret": clientSecret,
+        "code": code
+    };
+
+    fetch('https://slack.com/api/oauth.access?' + encodeQueryData(data), {
             method: 'POST',
             mode: 'cors',
             redirect: 'follow',
             headers: new Headers({
-                "Authorization": "Bearer " + this.appToken,
                 "Content-Type": "application/x-www-form-urlencoded"
             })
         })
@@ -42,4 +47,11 @@ function getOauthToken(clientId, clientSecret, code) {
         .catch(err => {
             console.error(err);
         });
+}
+
+function encodeQueryData(data) {
+    let ret = [];
+    for (let d in data)
+        ret.push(encodeURIComponent(d) + '=' + encodeURIComponent(data[d]));
+    return ret.join('&');
 }
