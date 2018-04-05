@@ -7,10 +7,10 @@ const translate = require('google-translate-api');
 global.Headers = fetch.Headers;
 
 class TranslatorBot {
-    constructor() {
+    constructor(appToken, botToken) {
 
-        this.token = process.env.BOT_API_KEY.trim();
-        this.appToken = process.env.APP_API_KEY.trim();
+        this.appToken = appToken
+        this.token = botToken;
 
         console.log("Bot token:" + this.token);
         console.log("App token:" + this.appToken);

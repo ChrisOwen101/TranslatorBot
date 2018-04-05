@@ -15,10 +15,10 @@ app.get('/oauth', function (req, res) {
     let code = req.param('code');
     let state = req.param('state');
     getOauthToken(code);
+
 });
 app.listen(port);
 
-new TranslatorBot();
 
 function getOauthToken(code) {
     fetch('https://slack.com/api/oauth.access?client_id=' + clientId + "&client_secret=" + clientSecret + "&code=" + code, {
@@ -35,7 +35,9 @@ function getOauthToken(code) {
             return response.json();
         })
         .then(res => {
-            console.log(res.access_token);
+            console.log(JSON.stringify(res));
+            new TranslatorBot(res.access_token, res.bot.bot_access_token);
+
         })
         .catch(err => {
             console.error(err);
