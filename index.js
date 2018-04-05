@@ -4,8 +4,8 @@ const express = require('express');
 const fetch = require("node-fetch");
 const TranslatorBot = require('./translator_bot.js');
 
-this.clientId = process.env.CLIENT_ID.trim();
-this.clientSecret = process.env.CLIENT_SECRET.trim();
+var clientId = process.env.CLIENT_ID.trim();
+var clientSecret = process.env.CLIENT_SECRET.trim();
 
 var app = express();
 var port = process.env.PORT || 8080;
