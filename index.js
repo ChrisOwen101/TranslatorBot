@@ -8,10 +8,12 @@ const express = require('express');
 global.Headers = fetch.Headers;
 
 var app = express();
-app.get('/oauth', function (req, res) {
+var port = process.env.PORT || 8080;
+
+app.get(port, '/oauth', function (req, res) {
     res.send('Hello Seattle\n');
 });
-app.listen(process.env.PORT || 8080);
+app.listen(port);
 
 
 class TranslatorBot {
