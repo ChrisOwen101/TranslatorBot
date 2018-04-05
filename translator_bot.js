@@ -32,7 +32,7 @@ class TranslatorBot {
                 if (data.text.includes(this.botId)) {
 
                 } else {
-                    this.getChannelFromId(makeHandlerObject(data.user, data.text, data.channel));
+                    this.getChannelFromId(this.makeHandlerObject(data.user, data.text, data.channel));
                 }
             } else if (data.type === "channel_joined" && !data.channel.name_normalized.includes("_translated")) {
                 this.createChannel(data.channel.name_normalized + "_translated");

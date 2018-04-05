@@ -27,6 +27,8 @@ function getOauthToken(clientId, clientSecret, code) {
         "code": code
     };
 
+    console.log('https://slack.com/api/oauth.access?' + encodeQueryData(data));
+
     fetch('https://slack.com/api/oauth.access?' + encodeQueryData(data), {
             method: 'POST',
             mode: 'cors',
