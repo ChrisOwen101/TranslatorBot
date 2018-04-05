@@ -10,6 +10,10 @@ global.Headers = fetch.Headers;
 var app = express();
 var port = process.env.PORT || 8080;
 
+app.get(port, '/', function (req, res) {
+    res.send('Hello Seattleeeeeeeeeeeeeeeeeeeeeeeee\n');
+});
+
 app.get(port, '/oauth', function (req, res) {
     res.send('Hello Seattle\n');
 });
