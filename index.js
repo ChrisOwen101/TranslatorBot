@@ -4,14 +4,18 @@ const express = require('express');
 const fetch = require("node-fetch");
 const TranslatorBot = require('./translator_bot.js');
 const MongoClient = require('mongodb').MongoClient;
-const uri = "mongodb+srv://ChrisOwen101:hacktheplanet@translatorbot-izwur.mongodb.net/test";
-
 
 var clientId = process.env.CLIENT_ID.trim();
 var clientSecret = process.env.CLIENT_SECRET.trim();
 
 var localOAuth = process.env.APP_TOKEN.trim();
 var localBotOAuth = process.env.TOKEN.trim();
+
+var dbUser = process.env.DB_USER.trim();
+var dbPass = process.env.DB_PASS.trim();
+const uri = `mongodb+srv://${dbUser}:${dbPass}@translatorbot-izwur.mongodb.net/test`;
+
+readAllFromMongo();
 
 var app = express();
 var port = process.env.PORT || 8080;
@@ -60,8 +64,30 @@ function getOauthToken(clientId, clientSecret, code) {
         });
 }
 
+function readAllFromMongo() {
+    MongoClient.connect(uri, function (err, client) {
+        const collection = client.db("users").collection("keys");
+
+        var stream = collection.find().stream();
+        stream.on('data', function (doc) {
+            new TranslatorBot(doc.accessToken, doc.accessBotToken, doc.botId);
+        });
+        stream.on('error', function (err) {
+            console.log(err);
+        });
+        stream.on('end', function () {
+            console.log('All done!');
+            client.close();
+        });
+
+        // perform actions on the collection object
+
+    });
+}
+
 function saveToMongo(accessToken, accessBotToken, botId) {
     let obj = {
+        "_id": accessToken,
         "accessToken": accessToken,
         "accessBotToken": accessBotToken,
         "botId": botId
@@ -70,10 +96,12 @@ function saveToMongo(accessToken, accessBotToken, botId) {
     MongoClient.connect(uri, function (err, client) {
         const collection = client.db("users").collection("keys");
 
-        collection.insert(obj, function (err, result) {
-            console.log(err);
-            console.log(result);
+        collection.save(obj, {
+            w: 1
+        }, function (err, result) {
+
         });
+
 
         // perform actions on the collection object
         client.close();
