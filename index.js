@@ -11,7 +11,7 @@ var app = express();
 app.get('/oauth', function (req, res) {
     res.send('Hello Seattle\n');
 });
-app.listen(3001);
+app.listen(80);
 
 
 class TranslatorBot {
