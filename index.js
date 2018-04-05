@@ -8,8 +8,8 @@ const MongoClient = require('mongodb').MongoClient;
 var clientId = process.env.CLIENT_ID.trim();
 var clientSecret = process.env.CLIENT_SECRET.trim();
 
-var localOAuth = process.env.APP_TOKEN.trim();
-var localBotOAuth = process.env.TOKEN.trim();
+// var localOAuth = process.env.APP_TOKEN.trim();
+// var localBotOAuth = process.env.TOKEN.trim();
 
 var dbUser = process.env.DB_USER.trim();
 var dbPass = process.env.DB_PASS.trim();
@@ -20,10 +20,10 @@ readAllFromMongo();
 var app = express();
 var port = process.env.PORT || 8080;
 
-if (localOAuth != null && localBotOAuth != null) {
-    new TranslatorBot(localOAuth, localBotOAuth);
-    saveToMongo(localOAuth, localBotOAuth, "123");
-}
+// if (localOAuth != null && localBotOAuth != null) {
+//     new TranslatorBot(localOAuth, localBotOAuth);
+//     saveToMongo(localOAuth, localBotOAuth, "123");
+// }
 
 app.get('/oauth', function (req, res) {
     res.send('You have now added TranslatorBot to your workspace.\nIn Slack, you can invite "TranslatorBot" to any channel to have him start translating messages.');
