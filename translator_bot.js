@@ -26,7 +26,7 @@ class TranslatorBot {
 
         this.getBotId();
 
-        bot.on('message', function (data) {
+        bot.on('message', data => {
             console.log(data);
             if (data.type === "message" && data.subtype !== "bot_message") {
                 if (data.text.includes(this.botId)) {
@@ -119,7 +119,7 @@ class TranslatorBot {
                     "Content-Type": "application/x-www-form-urlencoded"
                 })
             })
-            .then(function (response) {
+            .then(response => {
                 // Convert to JSON
                 return response.json();
             })
@@ -157,10 +157,10 @@ class TranslatorBot {
                     "Content-Type": "application/json"
                 })
             })
-            .then(function (response) {
+            .then(response => {
                 // Convert to JSON
                 return response.json();
-            }).then(function (j) {
+            }).then(j => {
                 // Yay, `j` is a JavaScript object
                 console.log(j);
                 this.joinChannel(j.channel.id);
@@ -185,10 +185,10 @@ class TranslatorBot {
                     "Content-Type": "application/json"
                 })
             })
-            .then(function (response) {
+            .then(response => {
                 // Convert to JSON
                 return response.json();
-            }).then(function (j) {
+            }).then(j => {
                 console.log("JOIN CHANNEL: " + JSON.stringify(j));
             }).catch((error) => {
                 console.log(error);
