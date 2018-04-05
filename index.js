@@ -10,14 +10,15 @@ global.Headers = fetch.Headers;
 var app = express();
 var port = process.env.PORT || 8080;
 
-app.get(port, '/', function (req, res) {
+app.get('/', function (req, res) {
     res.send('Hello Seattleeeeeeeeeeeeeeeeeeeeeeeee\n');
 });
 
-app.get(port, '/oauth', function (req, res) {
+app.get('/oauth', function (req, res) {
     res.send('Hello Seattle\n');
 });
 app.listen(port);
+console.log("Listening on port:" + port);
 
 
 class TranslatorBot {
