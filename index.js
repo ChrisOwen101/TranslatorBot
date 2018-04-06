@@ -58,7 +58,7 @@ function getOauthToken(clientId, clientSecret, code) {
 }
 
 function readAllFromMongo() {
-    MongoClient.connect(uri, function (err, client) {
+    MongoClient.connect(uri, (err, client) => {
         const collection = client.db("users").collection("keys");
 
         var stream = collection.find().stream();
@@ -87,7 +87,7 @@ function saveToMongo(accessToken, accessBotToken, botId) {
 
         collection.save(obj, {
             w: 1
-        }, function (err, result) {
+        }, (err, result) => {
             client.close();
         });
     });
