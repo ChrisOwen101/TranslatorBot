@@ -161,6 +161,7 @@ class TranslatorBot {
 
         bot2.postMessageToChannel(handler.toChannel, handler.translatedText);
         this.deductFreeMessage();
+        this.getIsPayed();
     }
 
     getIsPayed() {
@@ -172,10 +173,16 @@ class TranslatorBot {
             }, (err, item) => {
                 console.log(item);
                 if (item != undefined) {
-                    this.isPayed = item.freeMessages > 0 || item.isPayed;
-                }
+                    this.isPayed = item.freeMessages > 0;
 
-                client.close();
+                    if (item.isPayed) {
+                        this.isPayed = item.isPayed;
+                    } else {
+                        this.isPayed = item.freeMessages > 0;
+                    }
+
+                    client.close();
+                }
             });
         });
     }
