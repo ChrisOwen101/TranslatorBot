@@ -5,18 +5,18 @@ const fetch = require("node-fetch");
 const TranslatorBot = require('./translator_bot.js');
 const MongoClient = require('mongodb').MongoClient;
 
-var clientId = process.env.CLIENT_ID.trim();
-var clientSecret = process.env.CLIENT_SECRET.trim();
+const clientId = process.env.CLIENT_ID.trim();
+const clientSecret = process.env.CLIENT_SECRET.trim();
 
 // var localOAuth = process.env.APP_TOKEN.trim();
 // var localBotOAuth = process.env.TOKEN.trim();
 
-var dbUser = process.env.DB_USER.trim();
-var dbPass = process.env.DB_PASS.trim();
+const dbUser = process.env.DB_USER.trim();
+const dbPass = process.env.DB_PASS.trim();
 const uri = `mongodb+srv://${dbUser}:${dbPass}@translatorbot-izwur.mongodb.net/test`;
 
-var app = express();
-var port = process.env.PORT || 8080;
+const app = express();
+const port = process.env.PORT || 8080;
 
 // if (localOAuth != null && localBotOAuth != null) {
 //     new TranslatorBot(localOAuth, localBotOAuth);
@@ -26,11 +26,9 @@ var port = process.env.PORT || 8080;
 readAllFromMongo();
 
 app.get('/oauth', function (req, res) {
-    res.send('You have now added TranslatorBot to your workspace.\nIn Slack, you can invite "TranslatorBot" to any channel to have him start translating messages.');
+    res.send('You have now added TranslatorBot to your workspace.\n\nIn Slack, you can invite "TranslatorBot" to any channel to have him start translating messages.');
     let code = req.param('code');
-    let state = req.param('state');
     getOauthToken(clientId, clientSecret, code);
-
 });
 app.listen(port);
 
@@ -49,19 +47,14 @@ function getOauthToken(clientId, clientSecret, code) {
                 "Content-Type": "application/x-www-form-urlencoded"
             })
         })
-        .then(response => {
-            // Convert to JSON
-            return response.json();
-        })
+        .then(response => response.json())
         .then(res => {
             console.log(JSON.stringify(res));
             new TranslatorBot(res.access_token, res.bot.bot_access_token, res.bot.bot_user_id);
             saveToMongo(res.access_token, res.bot.bot_access_token, res.bot.bot_user_id);
 
         })
-        .catch(err => {
-            console.error(err);
-        });
+        .catch(err => console.error(err));
 }
 
 function readAllFromMongo() {
@@ -76,12 +69,8 @@ function readAllFromMongo() {
             console.log(err);
         });
         stream.on('end', () => {
-            console.log('All done!');
             client.close();
         });
-
-        // perform actions on the collection object
-
     });
 }
 

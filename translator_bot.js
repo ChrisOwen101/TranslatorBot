@@ -21,27 +21,34 @@ class TranslatorBot {
         console.log("Bot token:" + this.botToken);
         console.log("App token:" + this.appToken);
 
-        this.settings = {
-            "token": this.botToken
-        };
-
         this.lastLanguage = "en";
 
-        var bot = new Bot(this.settings);
+        let bot = new Bot({
+            "token": this.botToken
+        });
 
         bot.on('message', data => {
             console.log(data);
             if (data.type === "message" && data.subtype !== "bot_message") {
-                if (data.text.includes(this.botId)) {
-
-                } else {
+                if (!data.text.includes(this.botId)) {
                     this.getChannelFromId(this.makeHandlerObject(data.user, data.text, data.channel));
                 }
             } else if (data.type === "channel_joined" && !data.channel.name_normalized.includes("_translated")) {
-                bot.postMessageToChannel(data.channel.name_normalized, `Hi! I'm TranslatorBot... *Beep Boop*.\n\nI'm a robot that tries to translate everything that happens on Slack in to a language everyone can understand. I've just made a channel called *${data.channel.name_normalized + "_translated"}* where I'll attempt to translate everything.\n\nAnything you type in that channel I'll also translate back in to the original language. Give it a go!`);
                 this.createChannel(data.channel.name_normalized + "_translated");
+                this.sendWelcomeMessage(data);
             }
         });
+    }
+
+    sendWelcomeMessage(data) {
+        bot.postMessageToChannel(data.channel.name_normalized,
+            `Hi! I'm TranslatorBot... *Beep Boop*.\n\n
+
+            I'm a robot that tries to translate everything that happens on Slack in to a language everyone can understand.
+            I've just made a channel called *${data.channel.name_normalized + "_translated"}* where I'll attempt to translate everything.\n\n
+            
+            Anything you type in that channel I'll also translate back in to the original language. Give it a go!`
+        );
     }
 
     makeHandlerObject(id, text, channel) {
@@ -70,9 +77,7 @@ class TranslatorBot {
                     "Content-Type": "application/x-www-form-urlencoded"
                 })
             })
-            .then(function (response) {
-                return response.json();
-            })
+            .then(response => response.json())
             .then(res => {
                 console.log(res);
 
@@ -84,9 +89,7 @@ class TranslatorBot {
 
                 this.translateText(handler);
             })
-            .catch(err => {
-                console.error(err);
-            });
+            .catch(err => console.error(err));
     }
 
     translateText(handler) {
@@ -108,9 +111,7 @@ class TranslatorBot {
                 handler.fromISO = res.from.language.iso;
                 this.getInfoFromId(handler);
             })
-            .catch(err => {
-                console.error(err);
-            });
+            .catch(err => console.error(err));
     }
 
     getInfoFromId(handler) {
@@ -123,23 +124,18 @@ class TranslatorBot {
                     "Content-Type": "application/x-www-form-urlencoded"
                 })
             })
-            .then(response => {
-                // Convert to JSON
-                return response.json();
-            })
+            .then(response => response.json())
             .then(res => {
                 handler.realName = res.user.profile.real_name;
                 this.sendMessage(handler);
             })
-            .catch(err => {
-                console.error(err);
-            });
+            .catch(err => console.error(err));
     }
 
     sendMessage(handler) {
         let settings = {
             "token": this.botToken,
-            "name": handler.realName + " (Translated from " + getLanguage(handler.fromISO) + ")"
+            "name": `${handler.realName} (Translated from ${getLanguage(handler.fromISO)})`
         };
         let bot2 = new Bot(settings);
 
@@ -161,16 +157,13 @@ class TranslatorBot {
                     "Content-Type": "application/json"
                 })
             })
-            .then(response => {
-                // Convert to JSON
-                return response.json();
-            }).then(j => {
+            .then(response => response.json())
+            .then(j => {
                 // Yay, `j` is a JavaScript object
                 console.log(j);
                 this.joinChannel(j.channel.id);
-            }).catch((error) => {
-                console.log(error);
-            });
+            })
+            .catch(err => console.error(err));
     }
 
     joinChannel(channel) {
@@ -189,14 +182,9 @@ class TranslatorBot {
                     "Content-Type": "application/json"
                 })
             })
-            .then(response => {
-                // Convert to JSON
-                return response.json();
-            }).then(j => {
-                console.log("JOIN CHANNEL: " + JSON.stringify(j));
-            }).catch((error) => {
-                console.log(error);
-            });
+            .then(response => response.json())
+            .then(j => console.log("JOIN CHANNEL: " + JSON.stringify(j)))
+            .catch(err => console.error(err));
     }
 
     getBotId(next) {
@@ -208,10 +196,8 @@ class TranslatorBot {
                     "Authorization": "Bearer " + this.appToken
                 })
             })
-            .then(response => {
-                // Convert to JSON
-                return response.json();
-            }).then(res => {
+            .then(response => response.json())
+            .then(res => {
                 res.members.forEach(member => {
                     if (member.real_name === "TranslatorBot") {
                         this.botId = member.id;
@@ -222,9 +208,8 @@ class TranslatorBot {
                 if (res.response_metadata != undefined) {
                     this.getBotId(res.response_metadata.next_cursor);
                 }
-            }).catch((error) => {
-                console.log(error);
-            });
+            })
+            .catch(err => console.error(err));
     }
 }
 
