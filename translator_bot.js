@@ -17,7 +17,7 @@ class TranslatorBot {
         this.appToken = appToken;
         this.botToken = botToken;
         this.teamId = teamId;
-        this.isAllowed = true;
+        this.isPayed = true;
 
         if (botId === undefined) {
             this.getBotId();
@@ -46,7 +46,7 @@ class TranslatorBot {
             }
         });
 
-        this.getIsAllowed();
+        this.getIsPayed();
     }
 
     sendWelcomeMessage(data) {
@@ -142,14 +142,14 @@ class TranslatorBot {
     }
 
     sendMessage(handler) {
-        if (!this.isAllowed) {
+        if (!this.isPayed) {
             let settings = {
                 "token": this.botToken,
                 "name": `TranslatorBot`
             };
             let bot2 = new Bot(settings);
 
-            bot2.postMessageToChannel(handler.toChannel, "You have run out of free messages or your account has been disabled.");
+            bot2.postMessageToChannel(handler.toChannel, "*You have run out of free messages or your account has been disabled.*\n\n*Please visit www.website.com to re-enable your account* ");
             return;
         }
 
@@ -160,18 +160,40 @@ class TranslatorBot {
         let bot2 = new Bot(settings);
 
         bot2.postMessageToChannel(handler.toChannel, handler.translatedText);
+        this.deductFreeMessage();
     }
 
-    getIsAllowed() {
+    getIsPayed() {
         MongoClient.connect(uri, (err, client) => {
             const collection = client.db("users").collection("keys");
 
             collection.findOne({
-                _id: this.teamId
+                "_id": this.teamId
             }, (err, item) => {
+                console.log(item);
                 if (item != undefined) {
-                    this.isAllowed = item.freeMessages > 0 && item.isAllowed;
+                    this.isPayed = item.freeMessages > 0 || item.isPayed;
                 }
+
+                client.close();
+            });
+        });
+    }
+
+    deductFreeMessage() {
+        MongoClient.connect(uri, (err, client) => {
+            const collection = client.db("users").collection("keys");
+
+            let idObj = {
+                "_id": this.teamId
+            };
+
+            collection.findOne(idObj, (err, item) => {
+                console.log(item);
+                item.freeMessages = item.freeMessages - 1;
+                collection.update(idObj, item);
+
+                client.close();
             });
         });
     }

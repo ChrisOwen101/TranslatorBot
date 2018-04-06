@@ -62,7 +62,7 @@ function readAllOAuthFromMongo() {
         const collection = client.db("users").collection("keys");
 
         var stream = collection.find().stream();
-        stream.on('data', doc => new TranslatorBot(doc.accessToken, doc.accessBotToken, doc.botId));
+        stream.on('data', doc => new TranslatorBot(doc.accessToken, doc.accessBotToken, doc.botId, doc.teamId));
         stream.on('error', err => console.log(err));
         stream.on('end', () => client.close());
     });
@@ -76,7 +76,7 @@ function saveToMongo(accessToken, accessBotToken, botId, teamName, teamId) {
         "botId": botId,
         "teamId": teamId,
         "freeMessages": 1000,
-        "enabled": true
+        "isPayed": true
     };
 
     MongoClient.connect(uri, (err, client) => {
