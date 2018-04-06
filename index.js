@@ -22,7 +22,7 @@ const uri = `mongodb+srv://${dbUser}:${dbPass}@translatorbot-izwur.mongodb.net/t
 // }
 
 
-readAllFromMongo();
+readAllOAuthFromMongo();
 
 const app = express();
 app.get('/oauth', function (req, res) {
@@ -50,14 +50,14 @@ function getOauthToken(clientId, clientSecret, code) {
         .then(response => response.json())
         .then(res => {
             console.log(JSON.stringify(res));
-            new TranslatorBot(res.access_token, res.bot.bot_access_token, res.bot.bot_user_id);
-            saveToMongo(res.access_token, res.bot.bot_access_token, res.bot.bot_user_id);
+            new TranslatorBot(res.access_token, res.bot.bot_access_token, res.bot.bot_user_id, res.team_id);
+            saveToMongo(res.access_token, res.bot.bot_access_token, res.bot.bot_user_id, res.team_name, res.team_id);
 
         })
         .catch(err => console.error(err));
 }
 
-function readAllFromMongo() {
+function readAllOAuthFromMongo() {
     MongoClient.connect(uri, (err, client) => {
         const collection = client.db("users").collection("keys");
 
@@ -68,12 +68,15 @@ function readAllFromMongo() {
     });
 }
 
-function saveToMongo(accessToken, accessBotToken, botId) {
+function saveToMongo(accessToken, accessBotToken, botId, teamName, teamId) {
     let obj = {
-        "_id": accessToken,
+        "_id": teamId,
         "accessToken": accessToken,
         "accessBotToken": accessBotToken,
-        "botId": botId
+        "botId": botId,
+        "teamId": teamId,
+        "freeMessages": 1000,
+        "enabled": true
     };
 
     MongoClient.connect(uri, (err, client) => {

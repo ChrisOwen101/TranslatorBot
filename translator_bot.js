@@ -3,14 +3,21 @@
 const Bot = require('slackbots');
 const fetch = require("node-fetch");
 const translate = require('google-translate-api');
+const MongoClient = require('mongodb').MongoClient;
+
+const dbUser = process.env.DB_USER.trim();
+const dbPass = process.env.DB_PASS.trim();
+const uri = `mongodb+srv://${dbUser}:${dbPass}@translatorbot-izwur.mongodb.net/test`;
 
 global.Headers = fetch.Headers;
 
 class TranslatorBot {
-    constructor(appToken, botToken, botId) {
+    constructor(appToken, botToken, botId, teamId) {
 
         this.appToken = appToken;
         this.botToken = botToken;
+        this.teamId = teamId;
+        this.isAllowed = true;
 
         if (botId === undefined) {
             this.getBotId();
@@ -38,6 +45,8 @@ class TranslatorBot {
                 this.createChannel(data.channel.name_normalized + "_translated");
             }
         });
+
+        this.getIsAllowed();
     }
 
     sendWelcomeMessage(data) {
@@ -133,6 +142,17 @@ class TranslatorBot {
     }
 
     sendMessage(handler) {
+        if (!this.isAllowed) {
+            let settings = {
+                "token": this.botToken,
+                "name": `TranslatorBot`
+            };
+            let bot2 = new Bot(settings);
+
+            bot2.postMessageToChannel(handler.toChannel, "You have run out of free messages or your account has been disabled.");
+            return;
+        }
+
         let settings = {
             "token": this.botToken,
             "name": `${handler.realName} (Translated from ${getLanguage(handler.fromISO)})`
@@ -140,6 +160,20 @@ class TranslatorBot {
         let bot2 = new Bot(settings);
 
         bot2.postMessageToChannel(handler.toChannel, handler.translatedText);
+    }
+
+    getIsAllowed() {
+        MongoClient.connect(uri, (err, client) => {
+            const collection = client.db("users").collection("keys");
+
+            collection.findOne({
+                _id: this.teamId
+            }, function (err, item) {
+                if (item != undefined) {
+                    this.isAllowed = item.freeMessages > 0 && item.isAllowed;
+                }
+            });
+        });
     }
 
     createChannel(name) {
