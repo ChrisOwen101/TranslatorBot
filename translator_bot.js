@@ -34,8 +34,8 @@ class TranslatorBot {
                     this.getChannelFromId(this.makeHandlerObject(data.user, data.text, data.channel));
                 }
             } else if (data.type === "channel_joined" && !data.channel.name_normalized.includes("_translated")) {
-                this.createChannel(data.channel.name_normalized + "_translated");
                 this.sendWelcomeMessage(data);
+                this.createChannel(data.channel.name_normalized + "_translated");
             }
         });
     }
@@ -161,7 +161,9 @@ class TranslatorBot {
             .then(j => {
                 // Yay, `j` is a JavaScript object
                 console.log(j);
-                this.joinChannel(j.channel.id);
+                if (j.channel != undefined) {
+                    this.joinChannel(j.channel.id);
+                }
             })
             .catch(err => console.error(err));
     }
