@@ -18,6 +18,7 @@ class TranslatorBot {
         this.botToken = botToken;
         this.teamId = teamId;
         this.isPayed = true;
+        this.toLang = 'en';
 
         if (botId === undefined) {
             this.getBotId();
@@ -37,7 +38,11 @@ class TranslatorBot {
         bot.on('message', data => {
             console.log(data);
             if (data.type === "message" && data.subtype !== "bot_message") {
-                if (!data.text.includes(this.botId)) {
+
+                if (data.channel.startsWith("D")) {
+                    this.parseDirectMessage(data);
+
+                } else if (!data.text.includes(this.botId)) {
                     this.getChannelFromId(this.makeHandlerObject(data.user, data.text, data.channel));
                 }
             } else if (data.type === "channel_joined" && !data.channel.name_normalized.includes("_translated")) {
@@ -47,6 +52,27 @@ class TranslatorBot {
         });
 
         this.getIsPayed();
+    }
+
+    parseDirectMessage(data) {
+        let bot = new Bot({
+            "token": this.botToken
+        });
+
+        this.getInfoFromUserId(data.user, username => {
+            console.log(username);
+            if (data.text === "help") {
+                bot.postMessageToUser(username,
+                    `Hi! You can invite me to any public channel and I'll start translating everything people say there.\n\nBy default I translate everything in to english. To change this type "change" followed by the language code you want to set.  For example to change the language to German type\n\n*change de*\n\nThanks!`);
+            } else if (data.text.includes("change")) {
+                let lang = data.text.split(" ")[1];
+
+                if (lang != undefined) {
+                    this.toLang = lang;
+                    bot.postMessageToUser(username, `You have changed the default language to ${getLanguage(lang)}.`);
+                }
+            }
+        });
     }
 
     sendWelcomeMessage(data) {
@@ -102,7 +128,7 @@ class TranslatorBot {
     }
 
     translateText(handler) {
-        let toLang = 'en';
+        let toLang = this.toLang;
 
         if (!handler.toChannel.includes("_translated")) {
             toLang = this.lastLanguage;
@@ -119,6 +145,23 @@ class TranslatorBot {
                 handler.translatedText = res.text;
                 handler.fromISO = res.from.language.iso;
                 this.getInfoFromId(handler);
+            })
+            .catch(err => console.error(err));
+    }
+
+    getInfoFromUserId(id, callback) {
+        fetch('https://slack.com/api/users.info?user=' + id, {
+                method: 'GET',
+                mode: 'cors',
+                redirect: 'follow',
+                headers: new Headers({
+                    "Authorization": "Bearer " + this.appToken,
+                    "Content-Type": "application/x-www-form-urlencoded"
+                })
+            })
+            .then(response => response.json())
+            .then(res => {
+                callback(res.user.profile.display_name);
             })
             .catch(err => console.error(err));
     }
