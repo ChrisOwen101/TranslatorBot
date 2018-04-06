@@ -168,7 +168,7 @@ class TranslatorBot {
 
             collection.findOne({
                 _id: this.teamId
-            }, function (err, item) {
+            }, (err, item) => {
                 if (item != undefined) {
                     this.isAllowed = item.freeMessages > 0 && item.isAllowed;
                 }
